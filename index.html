@@ -1,37 +1,110 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prompt</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Prompts</title>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      padding: 16px;
-      background: #ffffff;
-    }
-    img {
-      max-width: 100%;
-      border-radius: 12px;
-    }
-    pre {
-      margin-top: 16px;
-      padding: 12px;
-      background: #f4f4f4;
-      border-radius: 8px;
-      font-family: monospace;
-      white-space: pre-wrap;
-      font-size: 14px;
-    }
+    body{font-family:-apple-system,BlinkMacSystemFont,system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#fff;color:#111}
+    .wrap{max-width:980px;margin:0 auto;padding:18px}
+    h1{font-size:20px;margin:0 0 14px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+    .card{border:1px solid #e8e8e8;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.04)}
+    .img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:#f3f3f3}
+    .content{padding:12px}
+    .row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .badge{font-size:12px;background:#f4f4f4;border-radius:999px;padding:4px 8px}
+    button{border:1px solid #e2e2e2;background:#fff;border-radius:10px;padding:8px 10px;font-size:13px;cursor:pointer}
+    button:active{transform:scale(.98)}
+    pre{margin:0;padding:10px;background:#f6f6f6;border-radius:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:13px;white-space:pre-wrap;word-break:break-word}
+    .topbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+    input{width:100%;max-width:420px;border:1px solid #e2e2e2;border-radius:12px;padding:10px 12px;font-size:14px}
+    .small{font-size:12px;color:#666;margin-top:6px}
   </style>
 </head>
 <body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <h1>Галерея промтов</h1>
+        <div class="small">Тапни “Копировать” → вставь в Telegram.</div>
+      </div>
+      <input id="q" placeholder="Поиск по промту…" />
+    </div>
 
-<img src="photo.jpg" alt="photo">
+    <div id="grid" class="grid"></div>
+  </div>
 
-<pre>
-A cinematic portrait of a woman, soft natural light, 85mm lens, ultra-realistic
-</pre>
+  <script>
+    // 1) Сюда добавляешь 50 элементов: {img:"img/01.jpg", prompt:`...`}
+    const items = [
+      {
+        img: "img/01.jpg",
+        prompt: `A cinematic portrait, soft natural light, 85mm lens, ultra-realistic`
+      },
+      {
+        img: "img/02.jpg",
+        prompt: `Studio product photo on seamless background, crisp shadows, high detail`
+      },
+      // ... добавь остальные 48
+    ];
 
+    const grid = document.getElementById("grid");
+    const q = document.getElementById("q");
+
+    function escapeHtml(s){
+      return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+    }
+
+    function render(list){
+      grid.innerHTML = list.map((it, idx) => {
+        const id = `p${idx}`;
+        return `
+          <div class="card">
+            <img class="img" src="${it.img}" alt="image ${idx+1}">
+            <div class="content">
+              <div class="row">
+                <span class="badge">#${idx+1}</span>
+                <button data-copy="${id}">Копировать</button>
+              </div>
+              <pre id="${id}">${escapeHtml(it.prompt)}</pre>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      // кнопки copy
+      document.querySelectorAll("button[data-copy]").forEach(btn => {
+        btn.onclick = async () => {
+          const id = btn.getAttribute("data-copy");
+          const text = document.getElementById(id).innerText;
+          try{
+            await navigator.clipboard.writeText(text);
+            const old = btn.innerText;
+            btn.innerText = "Скопировано ✅";
+            setTimeout(()=>btn.innerText=old, 900);
+          }catch(e){
+            // fallback: выделить текст, если clipboard запрещён
+            const el = document.getElementById(id);
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            alert("Не удалось скопировать автоматически. Текст выделен — нажми «Копировать».");
+          }
+        };
+      });
+    }
+
+    function filter(){
+      const s = q.value.trim().toLowerCase();
+      if(!s) return render(items);
+      render(items.filter(it => it.prompt.toLowerCase().includes(s)));
+    }
+
+    q.addEventListener("input", filter);
+    render(items);
+  </script>
 </body>
 </html>
