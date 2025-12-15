@@ -125,11 +125,12 @@ Do NOT change the face or identity. No face replacement, no AI beautification, n
           <div class="card">
             <img class="img" src="${it.img}" alt="image ${idx+1}">
             <div class="content">
-              <div class="row">
-                <span class="badge">#${idx+1}</span>
-                <button data-copy="${id}">Копировать</button>
-              </div>
-              <pre id="${id}">${escapeHtml(it.prompt)}</pre>
+            <div class="row">
+  <span class="badge">#${idx+1}</span>
+  <strong class="title">${it.title || ""}</strong>
+  <button data-copy="${id}">Копировать</button>
+</div>
+<pre id="${id}">${escapeHtml(it.prompt)}</pre>
             </div>
           </div>
         `;
